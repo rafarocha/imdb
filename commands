@@ -9,4 +9,4 @@ mvn flyway:clean -Dflyway.configFiles=flyway.conf
 java -jar h2*.jar -web -webAllowOthers -tcp -tcpAllowOthers -browser
 
 java -cp $H2_HOME/bin/h2*.jar org.h2.tools.Server -ifNotExists
-    jdbc:h2:tcp://localhost/~/imdb
+    jdbc:h2:tcp://localhost/~/test

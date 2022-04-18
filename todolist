@@ -1,6 +1,7 @@
 do
-- acertar url autenticacao para urls especificas - PENSAR BEM
-- implementar mecanica ja pegando os json  - COMO PEGARIA ALEATORIO?
+- acertar url autenticacao para urls especificas
+- implementar mecanica ja pegando os json
+- consertar h2-console e autenticar por fora via command
 
 done
 - impl ciclo de obtencao contexto completo em new game

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @FeignClient(url = "${app.host.url}", value = "game", configuration = FeignGameMovieClientConfiguration.class)
 public interface GameMovieClient {
 
-    @GetMapping("/movie")
+    @GetMapping("/imdb")
     String movie();
 
 }

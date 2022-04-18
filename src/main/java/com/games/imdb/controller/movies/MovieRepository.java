@@ -12,13 +12,16 @@ import org.springframework.stereotype.Repository;
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     interface Queries {
-        String INSERT = "insert into movies (name) " +
-                "VALUES (:name)";
+        String INSERT = "insert into movies (title) " +
+                "VALUES (:title)";
     }
 
     @Modifying
     @Query(value = Queries.INSERT, nativeQuery = true)
     @Transactional
-    void insert(@Param("name") String name);
+    void insert(@Param("title") String title);
+
+    @Query("from movies where imdbID = :imdbID")
+    Movie getByImdbID(@Param("imdbID") String imdbID);
 
 }

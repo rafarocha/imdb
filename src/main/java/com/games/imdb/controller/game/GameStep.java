@@ -1,10 +1,13 @@
 package com.games.imdb.controller.game;
 
+import javax.persistence.Embeddable;
+
 import com.games.imdb.controller.movies.Movie;
 
 import lombok.Data;
 
 @Data
+@Embeddable
 public class GameStep {
 
     private int foot; // sequenciar as etapas: 0, 1, 2 .. sao valores possiveis
