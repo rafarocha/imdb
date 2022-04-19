@@ -1,8 +1,10 @@
-package com.games.imdb.controller.game;
+package com.games.imdb.domain;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class CardMovie {
 
     private String imdbID;

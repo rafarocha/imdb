@@ -1,6 +1,7 @@
-package com.games.imdb.controller.movies;
+package com.games.imdb.controller;
 
 import com.games.imdb.dataset.MoviesDatasetRepositoryInMemory;
+import com.games.imdb.service.client.IMDBClient;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONObject;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-public class GatewayCompositionMoviesController {
+public class GatewayMovieController {
 
     @Autowired
     private IMDBClient imdbClient;

@@ -1,8 +1,9 @@
 do
-- acertar url autenticacao para urls especificas
-- implementar mecanica ja pegando os json
+- mudar retorno do vote e painel para mostrar um resume especifico
+- impl exceptionHandler
 - consertar h2-console e autenticar por fora via command
 
 done
+- impl mecanica dos votos
 - impl ciclo de obtencao contexto completo em new game
 - impl comunicacao json com feign

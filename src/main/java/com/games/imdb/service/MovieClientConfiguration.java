@@ -1,9 +1,9 @@
-package com.games.imdb.controller.game;
+package com.games.imdb.service;
 
 import org.springframework.context.annotation.Bean;
 import feign.auth.BasicAuthRequestInterceptor;
 
-public class FeignGameMovieClientConfiguration {
+public class MovieClientConfiguration {
 
     @Bean
     public BasicAuthRequestInterceptor basicAuthRequestInterceptor() {

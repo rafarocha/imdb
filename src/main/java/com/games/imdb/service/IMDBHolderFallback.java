@@ -1,6 +1,7 @@
-package com.games.imdb.controller.movies;
+package com.games.imdb.service;
 
 import com.games.imdb.dataset.MoviesDatasetRepositoryInMemory;
+import com.games.imdb.service.client.IMDBClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

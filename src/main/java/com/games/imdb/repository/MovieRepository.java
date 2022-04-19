@@ -1,6 +1,8 @@
-package com.games.imdb.controller.movies;
+package com.games.imdb.repository;
 
 import javax.transaction.Transactional;
+
+import com.games.imdb.domain.Movie;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

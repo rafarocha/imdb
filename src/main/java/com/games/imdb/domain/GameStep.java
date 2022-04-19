@@ -1,16 +1,16 @@
-package com.games.imdb.controller.game;
+package com.games.imdb.domain;
 
 import javax.persistence.Embeddable;
 
-import com.games.imdb.controller.movies.Movie;
-
+import lombok.Builder;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @Embeddable
 public class GameStep {
 
-    private int foot; // sequenciar as etapas: 0, 1, 2 .. sao valores possiveis
+    private int step; // sequenciar as etapas: 0, 1, 2 .. sao valores possiveis
 
     // private CardMovie movie1;
     // private CardMovie movie2;
@@ -20,6 +20,7 @@ public class GameStep {
 
     private int vote; // 0 nao votou, 1 votou em 1, 2 votou em 2
     private int resp; // 0 nao votou .. indica qual o maior, se 1 ou 2 após voto
+    private boolean itsRight;
     private String dateResponse; // quando respondeu o card
 
     public boolean hasAnyMovie(Movie m1, Movie m2) {

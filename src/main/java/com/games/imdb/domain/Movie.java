@@ -1,4 +1,4 @@
-package com.games.imdb.controller.movies;
+package com.games.imdb.domain;
 
 import java.util.Objects;
 
@@ -112,6 +112,22 @@ public class Movie {
     @Override
     public String toString() {
         return title;
+    }
+
+    public CardMovie toCardMovie(String urlMounted) {
+        return CardMovie
+                .builder()
+                .imdbID(this.imdbID)
+                .title(this.title)
+                .year(this.year)
+                .released(this.released)
+                .genre(this.genre)
+                .actors(this.actors)
+                .country(this.country)
+                .plot(this.plot)
+                .poster(this.poster)
+                .urlVote(urlMounted)
+                .build();
     }
 
 }

@@ -1,6 +1,7 @@
-package com.games.imdb.controller.movies;
+package com.games.imdb.service.client;
 
 import com.games.imdb.config.FeignBasicConfig;
+import com.games.imdb.service.IMDBHolderFallback;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
