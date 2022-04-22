@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.games.imdb.domain.to.DetailGameStep;
+import com.games.imdb.domain.to.PainelGame;
+import com.games.imdb.domain.to.ResumeGameStepsWithRatings;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +52,7 @@ public class Game {
     private int step;
     private int errors;
     private boolean finished;
+    private boolean canceled;
 
     @Column(length = 1000)
     @Basic(fetch = FetchType.EAGER)
@@ -89,7 +93,7 @@ public class Game {
     // TODO problema com pattern builder e jackson para embedded list transiente
     @PostLoad
     public void postLoad() {
-        String document = this.document;
+        String document = this.getDocument();
         if (document == null | document.isBlank())
             return;
 
@@ -140,6 +144,16 @@ public class Game {
         return steps.get(index);
     }
 
+    @JsonIgnore
+    public GameStep getNextGameStep() {
+        this.postLoad(); // TODO melhorar aspecto lazy .. revisar metodos preConstruct/etc
+        List<GameStep> steps = this.getSteps();
+
+        int index = (this.finished) ? steps.size() - 1 : this.step + 1;
+        if ( index == steps.size() ) return null; // haven't next step, currrent is the last
+        return steps.get(index);
+    }
+
     private void validateLimitsStepAndVote(int step, int vote) {
         validateLimitsStep(step);
         validateLimitsStep(vote);
@@ -163,7 +177,13 @@ public class Game {
 
         gameStep.setVote(vote);
         gameStep.setResp(mHigh);
+        gameStep.setItsRight(vote == mHigh);
         this.updatePointsAndErrors((mHigh == vote));
+
+        if ( this.errors > 3 )
+            throw new RuntimeException("game over .. 4 erros " + this.errors);            
+        if (this.errors == 3)
+            this.setMessage("you lost the game with 3 errors");
 
         String date = new SimpleDateFormat("dd/MM/yyyy hh:mm:MM").format(new Date());
         gameStep.setDateResponse(date);
@@ -189,6 +209,40 @@ public class Game {
     private Long convertVotes(String votes) {
         String clean = votes.replace(",", "");
         return Long.valueOf(clean);
+    }
+
+    public void cancel() {
+        this.canceled = true;
+    }
+
+    public ResumeGameStepsWithRatings toResumeGameStepsWithRatings(List<DetailGameStep> details) {
+        return ResumeGameStepsWithRatings
+                .builder()
+                .message(this.getMessage())
+                .user(this.getUser())
+                .date(this.getDate())
+                .details(details)
+                .build();
+    }
+
+    public PainelGame toPainelGame() {
+        String message = String.format("You have %s more stages besides this one. Good luck!", (4 - this.step));
+        if ( 4 == this.step ) {
+            message = "Final round!";
+        }
+        if ( this.finished ) {
+            String finishMessage = "Just finished! You winner with %s points and %s errors.";
+            message =  String.format(finishMessage, this.points, this.errors);
+        }
+
+        return PainelGame
+            .builder()
+            .id(this.getId())
+            .message(message)
+            .user(this.getUser())
+            .date(this.getDate())
+            .step(this.getStep())
+            .build();
     }
 
 }

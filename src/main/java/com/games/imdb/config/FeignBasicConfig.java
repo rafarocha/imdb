@@ -2,13 +2,13 @@ package com.games.imdb.config;
 
 import org.springframework.context.annotation.Bean;
 
-import feign.Logger;
+import feign.auth.BasicAuthRequestInterceptor;
 
 public class FeignBasicConfig {
 
     @Bean
-    Logger.Level feignLoggerLevel() {
-        return Logger.Level.FULL;
+    public BasicAuthRequestInterceptor basicAuthRequestInterceptor() {
+        return new BasicAuthRequestInterceptor("system", "123");
     }
 
 }

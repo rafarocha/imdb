@@ -1,4 +1,4 @@
-package com.games.imdb.domain;
+package com.games.imdb.domain.to;
 
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class CardMovie {
     private String actors;
     private String country;
     private String plot;
-    private String urlVote;
+    private String commandToVote;
 
     @Override
     public String toString() {

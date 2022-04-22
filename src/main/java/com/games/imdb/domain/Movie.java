@@ -10,6 +10,8 @@ import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.games.imdb.domain.to.CardMovie;
+import com.games.imdb.domain.to.RatingMovie;
 
 import lombok.Data;
 
@@ -126,8 +128,18 @@ public class Movie {
                 .country(this.country)
                 .plot(this.plot)
                 .poster(this.poster)
-                .urlVote(urlMounted)
+                .commandToVote(urlMounted)
                 .build();
+    }
+
+    public RatingMovie toRatingMovie() {
+        return RatingMovie
+            .builder()
+            .imdbID(this.getImdbID())
+            .title(this.getTitle())
+            .poster(this.getPoster())
+            .imdbRating(this.getImdbRating())
+            .build();
     }
 
 }

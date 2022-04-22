@@ -1,19 +1,24 @@
 package com.games.imdb.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.games.imdb.domain.CardMovie;
 import com.games.imdb.domain.Game;
 import com.games.imdb.domain.GameStep;
 import com.games.imdb.domain.Movie;
-import com.games.imdb.domain.PainelGame;
 import com.games.imdb.domain.RankUser;
+import com.games.imdb.domain.to.CardMovie;
+import com.games.imdb.domain.to.DetailGameStep;
+import com.games.imdb.domain.to.PainelGame;
+import com.games.imdb.domain.to.ResumeGameStepsWithRatings;
 import com.games.imdb.repository.GameRepository;
 import com.games.imdb.repository.MovieRepository;
 import com.games.imdb.repository.RankRepository;
-import com.games.imdb.service.client.GameMovieClient;
+import com.games.imdb.service.client.OmdbApiClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameService {
 
     @Autowired
-    private GameMovieClient movieGateway;
+    private OmdbApiClient movieGateway;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -44,21 +49,22 @@ public class GameService {
         return gameRepository.getById(id);
     }
 
+    public PainelGame painel(Long id) {
+        Game game = gameRepository.getById(id);
+        return mountPainel(game, game.getCurrentGameStep());
+    }
+
     public PainelGame painel(Game game) {
-        GameStep gameStep = game.getCurrentGameStep();
-        return mountPainel(game, gameStep);
+        return mountPainel(game, game.getCurrentGameStep());
+    }
+
+    public PainelGame painel(Long id, int step) {
+        Game game = gameRepository.getById(id);
+        return mountPainel(game, game.getSpecificGameStep(step));
     }
 
     private PainelGame mountPainel(Game game, GameStep gameStep) {
-        // jogar na camada service
-        PainelGame painel = PainelGame
-                .builder()
-                .id(game.getId())
-                .message(game.getMessage())
-                .user(game.getUser())
-                .date(game.getDate())
-                .step(game.getStep())
-                .build();
+        PainelGame painel = game.toPainelGame();
 
         Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
         Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2());
@@ -70,6 +76,7 @@ public class GameService {
 
         painel.setCard1(card1);
         painel.setCard2(card2);
+        painel.setStep(gameStep.getStep());
         return painel;
     }
 
@@ -127,8 +134,12 @@ public class GameService {
     @Transactional
     public Game vote(Long id, int step, int vote) {
         Game game = gameRepository.getById(id);
+        
         if (game == null)
             throw new RuntimeException("game nao existe id:" + id);
+
+        if (game.isCanceled())
+            throw new RuntimeException("game cancelado id: "  + id);
 
         GameStep gameStep = game.getSpecificGameStep(step);
 
@@ -136,27 +147,25 @@ public class GameService {
         Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2());
 
         game.vote(step, vote, movie1, movie2, gameStep);
+        gameRepository.save(game.fillDocument());
 
         if (game.isFinished()) {
             this.saveRank(game);
         }
 
-        return gameRepository.save(game);
+        return game;
     }
 
     private void saveRank(Game game) {
         RankUser rank = rankUserRepository.getByUsername(game.getUser());
         if (rank == null) {
-            rank = RankUser
-                    .builder()
-                    .username(game.getUser())
-                    .build();
+            rank = new RankUser(game.getUser());
         }
 
-        for (GameStep step : game.getSteps()) {
-            rank.update(step.isItsRight());
-        }
+        //String document = game.getDocument(); // TODO tratar lazy load para os steps
+        //game.postLoad();
 
+        rank.update(game);
         rankUserRepository.save(rank);
     }
 
@@ -177,6 +186,38 @@ public class GameService {
             this.url1 = url1;
             this.url2 = url2;
         }
+    }
+
+    public DetailGameStep toDetailGameStep(Long id, int step) {
+        Game game = this.get(id);
+        GameStep gameStep = game.getSpecificGameStep(step);
+
+        Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
+        Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2());
+
+        return gameStep.toDetailGameStep(movie1, movie2);
+    }
+
+    public ResumeGameStepsWithRatings toResumeGameStepsWithRating(Long id) {
+        Game game = this.get(id);
+
+        List<DetailGameStep> details = new ArrayList<DetailGameStep>();
+        for (GameStep step : game.getSteps()) {
+
+            Movie movie1 = movieRepository.getByImdbID(step.getMovieId1());
+            Movie movie2 = movieRepository.getByImdbID(step.getMovieId2());
+
+            DetailGameStep detail = step.toDetailGameStep(movie1, movie2);
+            details.add(detail);
+        }
+
+        return game.toResumeGameStepsWithRatings(details);
+    }
+
+    public void cancel(Long id) {
+        Game game = this.get(id);
+        game.cancel();
+        gameRepository.save(game);
     }
 
 }

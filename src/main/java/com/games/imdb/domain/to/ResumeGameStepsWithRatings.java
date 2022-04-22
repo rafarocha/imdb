@@ -1,18 +1,18 @@
-package com.games.imdb.domain;
+package com.games.imdb.domain.to;
+
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class PainelGame {
+public class ResumeGameStepsWithRatings {
 
     private Long id;
     private String message;
     private String user;
     private String date;
-    private int step;
-    private CardMovie card1;
-    private CardMovie card2;
-
+    private List<DetailGameStep> details;
+    
 }

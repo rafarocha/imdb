@@ -2,9 +2,9 @@ package com.games.imdb.domain;
 
 import javax.persistence.Embeddable;
 
-import lombok.Builder;
+import com.games.imdb.domain.to.DetailGameStep;
+
 import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
 
 @Data
 @Embeddable
@@ -35,6 +35,15 @@ public class GameStep {
         boolean m2m2 = (this.movieId2.equals(m2.getImdbID()));
 
         return (m1m1 || m1m2 || m2m2);
+    }
+
+    public DetailGameStep toDetailGameStep(Movie m1, Movie m2) {
+        return DetailGameStep
+            .builder()
+            .gameStep(this)
+            .rating1(m1.toRatingMovie())
+            .rating2(m2.toRatingMovie())
+            .build();
     }
 
 }
