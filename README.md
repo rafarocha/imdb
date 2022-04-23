@@ -18,6 +18,8 @@
 - API Swagger http://localhost:8080/swagger-ui.html
 - H2 Console http://localhost:8080/h2-console
 - Integration API Reference https://www.omdbapi.com/
+  - Generate your own API key to use. Limit at 1K/day. 
+  - Insert on application.properties `app.imdb.apikey=[your-key]`
 - Improvements or Bugs in tickets e todolist files
 
 ## Disclaimer
