@@ -30,7 +30,7 @@ public class GatewayMovieController {
     @Value("${app.imdb.url}")
     private String url;
 
-    @GetMapping(value = "/imdb")
+    @GetMapping(value = "/gateway")
     public ResponseEntity<String> movie() {
         String titleRandom = datasetRepositoryInMemory.random();
         try {

@@ -30,17 +30,9 @@ public class RankUser {
     private long totalErrors;
     private long balance;
 
-    public void update(boolean itIsRight) {
-        if (itIsRight)
-            this.totalPoints += 1;
-        else
-            this.totalErrors += 1;
-        
-        this.balance = this.totalPoints - this.totalErrors;
-        this.totalGames += 1;
-    }
-
     public void update(Game game) {
+        String document = game.getDocument();
+        game.postLoad();;
         for (GameStep step : game.getSteps()) {
             if (step.isItsRight())
                 this.totalPoints += 1;

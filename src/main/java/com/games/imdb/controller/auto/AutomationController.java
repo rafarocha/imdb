@@ -1,11 +1,25 @@
 package com.games.imdb.controller.auto;
 
+import static com.games.imdb.controller.auto.HelperController.getAllHeaders;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import com.games.imdb.domain.Game;
+import com.games.imdb.domain.to.PainelGame;
+import com.games.imdb.service.GameService;
 import com.games.imdb.service.client.GameClient;
+import com.games.imdb.service.client.UserClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,22 +34,44 @@ public class AutomationController {
     @Autowired
     private GameClient gameClient;
 
-    @GetMapping(value = "/create-game-and-vote-all-card2")
-    public ResponseEntity<String> createGameAndVoteAllCard2() {
-        Game game = gameClient.create();
-        gameClient.vote(game.getId(), 0, 2);
-        gameClient.vote(game.getId(), 1, 2);
-        gameClient.vote(game.getId(), 2, 2);
-        gameClient.vote(game.getId(), 3, 2);
-        gameClient.vote(game.getId(), 4, 2);
+    @Autowired
+    private GameService gameService;
+
+    @Autowired
+    private UserClient userClient;
+
+    @GetMapping(value = "/create-game-and-vote-right-all-answers")
+    public ResponseEntity<String> createGameAndVoteRightAllAnswers(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        Map<String, String> headers = HelperController.getAllHeaders(request);
+        PainelGame painel = gameClient.create(headers);
+        Game game = gameService.get(painel.getId());
+        allCardsVoteRightAnswers(headers, game, user);
         return new ResponseEntity<String>("sucess", HttpStatus.OK);
     }
 
-    @GetMapping(value = "/create-game-and-vote-all-card3-failed")
-    public ResponseEntity<String> createGameAndVoteCard3Failed() {
-        Game game = gameClient.create();
-        gameClient.vote(game.getId(), 0, 3);
+    @GetMapping(value = "/create-game-and-vote-invalid")
+    public ResponseEntity<String> createGameAndVoteCard3Failed(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        Map<String, String> headers = HelperController.getAllHeaders(request);
+        PainelGame painel = gameClient.create(headers);
+        gameClient.vote(headers, painel.getId(), 3);
         return new ResponseEntity<String>("sucess", HttpStatus.OK);
+    }
+
+    private void allCardsVoteRightAnswers(Map<String, String> headers, Game game, User user) {
+        int vote = gameService.getRightAnswer(game, 0);
+        gameClient.vote(headers, game.getId(), vote);
+
+        vote = gameService.getRightAnswer(game, 1);
+        gameClient.vote(headers, game.getId(), vote);
+
+        vote = gameService.getRightAnswer(game, 2);
+        gameClient.vote(headers, game.getId(), vote);
+
+        vote = gameService.getRightAnswer(game, 3);
+        gameClient.vote(headers, game.getId(), vote);
+
+        vote = gameService.getRightAnswer(game, 4);
+        gameClient.vote(headers, game.getId(), vote);
     }
     
 }

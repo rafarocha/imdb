@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.games.imdb.controller.exception.BusinessException;
 import com.games.imdb.domain.Game;
 import com.games.imdb.domain.GameStep;
 import com.games.imdb.domain.Movie;
@@ -18,7 +19,7 @@ import com.games.imdb.domain.to.ResumeGameStepsWithRatings;
 import com.games.imdb.repository.GameRepository;
 import com.games.imdb.repository.MovieRepository;
 import com.games.imdb.repository.RankRepository;
-import com.games.imdb.service.client.OmdbApiClient;
+import com.games.imdb.service.client.GatewayClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameService {
 
     @Autowired
-    private OmdbApiClient movieGateway;
+    private GatewayClient movieGateway;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -69,7 +70,7 @@ public class GameService {
         Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
         Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2());
 
-        CardUrl cardUrl = mountCardUrlForVotes(game.getId(), gameStep.getStep());
+        CardUrl cardUrl = mountCardUrlForVotes(game);
 
         CardMovie card1 = movie1.toCardMovie(cardUrl.url1);
         CardMovie card2 = movie2.toCardMovie(cardUrl.url2);
@@ -86,6 +87,8 @@ public class GameService {
     }
 
     public Game create(String user) {
+        validateGamesNotFinished();
+
         Game game = new Game(user);
         int index = 0;
 
@@ -94,6 +97,18 @@ public class GameService {
         } while (index++ <= 3); // max 5 [0..4]
 
         return gameRepository.save(game.fillDocument());
+    }
+
+    private void validateGamesNotFinished() {
+        List<Game> games = gameRepository.getAllNotFinished();
+        if ( games != null && !games.isEmpty() ) {
+            String list = "";
+            for (Game game : games) {
+                list += game.getId() + ", ";
+            }
+            list = list.substring(0, list.length() - 2);
+            throw new BusinessException("você possui games em aberto ids: " + list );
+        }
     }
 
     private GameStep newStep(Game game, int currentStep) {
@@ -132,21 +147,17 @@ public class GameService {
     }
 
     @Transactional
-    public Game vote(Long id, int step, int vote) {
+    public Game vote(Long id, int vote) {
         Game game = gameRepository.getById(id);
-        
-        if (game == null)
-            throw new RuntimeException("game nao existe id:" + id);
+        validateIfExistOrCancelOrFinished(id, game);
 
-        if (game.isCanceled())
-            throw new RuntimeException("game cancelado id: "  + id);
-
-        GameStep gameStep = game.getSpecificGameStep(step);
+        System.out.println( game.getStep() );
+        GameStep gameStep = game.getCurrentGameStep();
 
         Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
         Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2());
 
-        game.vote(step, vote, movie1, movie2, gameStep);
+        game.vote(vote, movie1, movie2);
         gameRepository.save(game.fillDocument());
 
         if (game.isFinished()) {
@@ -156,35 +167,50 @@ public class GameService {
         return game;
     }
 
+    private void validateIfExistOrCancelOrFinished(Long id, Game game) {
+        if (game == null)
+            throw new BusinessException("game nao existe id " + id);
+
+        if (game.isCanceled())
+            throw new BusinessException("game cancelado id "  + id);
+
+        if ( game.isFinished() ) {
+            throw new BusinessException("game finalizado id "  + id);
+        }
+    }
+
     private void saveRank(Game game) {
+        game = gameRepository.getById(game.getId());
         RankUser rank = rankUserRepository.getByUsername(game.getUser());
         if (rank == null) {
             rank = new RankUser(game.getUser());
         }
 
-        //String document = game.getDocument(); // TODO tratar lazy load para os steps
-        //game.postLoad();
-
+        String documento = game.getDocument();
+        game.postLoad(); // TODO tratar lazy load para os steps
         rank.update(game);
         rankUserRepository.save(rank);
     }
 
     // PUT http://localhost:8080/games/1?step=0&vote=2
     // no game 1 na etapa 0 e votando no card 2
-    private static final String curl = "curl -X PUT %s/games/%s?step=%s&vote=%s";
+    //private static final String curl = "curl -X PUT %s/games/%s?step=%s&vote=%s";
+    private static final String curl = "%s/game/votes/%s/%s";
 
-    private CardUrl mountCardUrlForVotes(Long id, int step) {
-        return new CardUrl(
-                String.format(curl, url, id, step, 1),
-                String.format(curl, url, id, step, 2));
+    private CardUrl mountCardUrlForVotes(Game game) {
+        return new CardUrl( game );
     }
 
     public class CardUrl {
         private String url1, url2;
 
-        public CardUrl(String url1, String url2) {
-            this.url1 = url1;
-            this.url2 = url2;
+        public CardUrl(Game game) {
+            this.url1 = String.format(curl, url, game.getId(), 1);
+            this.url2 = String.format(curl, url, game.getId(), 2);
+            if (game.isLastStep()) {
+                this.url1 = this.url1.concat("/last");
+                this.url2 = this.url2.concat("/last");
+            }
         }
     }
 
@@ -218,6 +244,18 @@ public class GameService {
         Game game = this.get(id);
         game.cancel();
         gameRepository.save(game);
+    }
+
+    public int getRightAnswer(Game game, int step) {
+        GameStep gameStep = game.getSpecificGameStep(step);
+
+        Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
+        Movie movie2 = movieRepository.getByImdbID(gameStep.getMovieId2()); 
+
+        int result = (movie1.getImdbRating() 
+            >= movie2.getImdbRating()) ? 1 : 2;
+
+        return result;
     }
 
 }

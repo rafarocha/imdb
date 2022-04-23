@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.games.imdb.controller.exception.BusinessException;
 import com.games.imdb.domain.to.DetailGameStep;
 import com.games.imdb.domain.to.PainelGame;
 import com.games.imdb.domain.to.ResumeGameStepsWithRatings;
@@ -137,11 +138,9 @@ public class Game {
 
     @JsonIgnore
     public GameStep getCurrentGameStep() {
-        this.postLoad(); // TODO melhorar aspecto lazy .. revisar metodos preConstruct/etc
-        List<GameStep> steps = this.getSteps();
-
-        int index = (this.finished) ? steps.size() - 1 : this.step;
-        return steps.get(index);
+        //this.postLoad(); // TODO melhorar aspecto lazy .. revisar metodos preConstruct/etc
+        //List<GameStep> steps = this.getSteps();
+        return steps.get(this.step);
     }
 
     @JsonIgnore
@@ -154,23 +153,31 @@ public class Game {
         return steps.get(index);
     }
 
-    private void validateLimitsStepAndVote(int step, int vote) {
-        validateLimitsStep(step);
-        validateLimitsStep(vote);
-    }
-
     public void validateLimitsStep(int step) {
         if (step > 4)
-            throw new RuntimeException("etapa invalida .. [0..4]");
+            throw new BusinessException("etapa invalida .. [0..4]");
+    }
+
+    public void validateLimitsStep() {
+        if (step > 4)
+            throw new BusinessException("etapa invalida .. [0..4]");
     }
 
     public void validateLimitsVote(int vote) {
-        if (vote != 1 || vote != 2)
-            throw new RuntimeException("voto invalido .. [0..1]");
+        if (vote < 1 || vote > 2)
+            throw new BusinessException("voto invalido .. [0..1]");
     }
 
-    public void vote(int step, int vote, Movie m1, Movie m2, GameStep gameStep) {
-        validateLimitsStepAndVote(step, vote);
+    public void validate(int vote) {
+        validateLimitsStep();
+        validateLimitsVote(vote);
+        validateWhenVoteAdvanceCard(vote);
+    }
+
+    public void vote(int vote, Movie m1, Movie m2) {
+        validate(vote);
+
+        GameStep gameStep = this.getCurrentGameStep();
 
         // considerando empate como acerto .. para melhorias discutir usabilidade
         int mHigh = (m1.getImdbRating() >= m2.getImdbRating()) ? 1 : 2;
@@ -180,15 +187,31 @@ public class Game {
         gameStep.setItsRight(vote == mHigh);
         this.updatePointsAndErrors((mHigh == vote));
 
-        if ( this.errors > 3 )
-            throw new RuntimeException("game over .. 4 erros " + this.errors);            
+        if ( this.errors > 3 ) {
+            this.message = "game over .. você alcançou 4 erros";
+            this.finished = true;
+        }
+            
         if (this.errors == 3)
-            this.setMessage("you lost the game with 3 errors");
+            this.setMessage("você pode perder o jogo .. com 3 erros");
 
         String date = new SimpleDateFormat("dd/MM/yyyy hh:mm:MM").format(new Date());
         gameStep.setDateResponse(date);
 
         this.goToNextStep(step);
+    }
+
+    private void validateWhenVoteAdvanceCard(int vote) {
+        GameStep gameStep = this.getCurrentGameStep();
+        if ( gameStep.getStep() == step ) return;
+
+        if ( gameStep.getStep() < step ) {
+            String message = "você está tentando votar o step % mas o atual é %s que deve ser votado antes";
+            throw new BusinessException(String.format(message, step, gameStep.getStep()) );
+        }
+        if ( gameStep.getStep() > step ) {
+            throw new BusinessException("situacao desconhecida");
+        }
     }
 
     private void updatePointsAndErrors(boolean itIsRight) {
@@ -199,16 +222,10 @@ public class Game {
     }
 
     private void goToNextStep(int currentStep) {
-        if (currentStep >= 4) {
+        if (currentStep == 4)
             this.finished = true;
-        }
-        this.setStep(currentStep + 1);
-    }
-
-    @Deprecated // TODO reaproveitar quando for montar cardMovie
-    private Long convertVotes(String votes) {
-        String clean = votes.replace(",", "");
-        return Long.valueOf(clean);
+        else 
+            this.step += 1;
     }
 
     public void cancel() {
@@ -243,6 +260,10 @@ public class Game {
             .date(this.getDate())
             .step(this.getStep())
             .build();
+    }
+
+    public boolean isLastStep() {
+        return (this.step == 4); // [0..4]
     }
 
 }

@@ -1,18 +1,13 @@
 do
-- add swagger api web console
-- mudar retorno do vote e painel para mostrar um resume especifico
-- impl exceptionHandler
+- incluir documentacao basica
+- impl testes unitarios
 - consertar h2-console e autenticar por fora via command
 
 done
+- add support swagger web console
+- impl retorno do vote e painel para mostrar um resume especifico
+- impl exceptionHandler
 - impl mecanica dos votos
 - impl ciclo de obtencao contexto completo em new game
 - impl comunicacao json com feign
-
-# INVESTIGAR CASOS
-#001
-falha geral da aplicacao 
-[500] during [PUT] to [http://localhost:8080/games/2?step=3&vote=2] [GameClient#vote(Long,int,int)]: [falha geral da aplicacao 
-query did not return a unique result: 2; nested exception is javax.persistence.NonUniqueResultException: query did not return a unique result: 2]
-
-#002 
+- impl basico jogo
