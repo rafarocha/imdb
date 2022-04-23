@@ -20,6 +20,7 @@
 - Integration API Reference https://www.omdbapi.com/
   - Generate your own API key to use. Limit at 1K/day. 
   - Insert on application.properties `app.imdb.apikey=[your-key]`
+- Import insomnia file
 - Improvements or Bugs in tickets e todolist files
 
 ## Disclaimer
