@@ -6,13 +6,16 @@
 
 ## How to Use
 
-1. Run Spring Project and enter http://localhost:8080/game/new
-2. Follow the instructions at the message JSON
-3. Review 2 movies an each card
-4. Click on poster URL to see cover film
-5. Click on link commandVote attribute to cards 1 or 2
-6. You have 5 steps and then you will see your score
-7. Explore code
+1. Run Spring Project
+2. Create an Account. POST Method without payload on http://localhost:8080/users/{user}/{role}/{pswd}
+3. Enter the new game at http://localhost:8080/game/new
+4. It takes less than 10 seconds to load the game.
+5. Follow the instructions in the message JSON.
+6. Review each card's data, one movie for each.
+7. Click on the poster URL to see cover film.
+8. Then, after deciding your choice, you should click on the card link, in commandVote attribute.
+9. You can't miss more than 3 times. There are 5 attempts. At the end, you will see your score.
+10. Good luck!
 
 ## Setup
 - API Swagger http://localhost:8080/swagger-ui.html
