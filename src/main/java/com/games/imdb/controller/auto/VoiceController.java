@@ -4,10 +4,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.games.imdb.domain.Game;
 import com.games.imdb.domain.RankUser;
 import com.games.imdb.domain.to.PainelGame;
-import com.games.imdb.service.GameService;
 import com.games.imdb.service.client.GameClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +24,6 @@ public class VoiceController {
 
     @Autowired
     private GameClient gameClient;
-
-    @Autowired
-    private GameService gameService;
 
     @GetMapping(value = "/votes/{gameId}/{vote}")
     public ResponseEntity<PainelGame> vote(@AuthenticationPrincipal User user, HttpServletRequest request,

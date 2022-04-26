@@ -1,9 +1,5 @@
 package com.games.imdb.controller.auto;
 
-import static com.games.imdb.controller.auto.HelperController.getAllHeaders;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,23 +8,18 @@ import com.games.imdb.domain.Game;
 import com.games.imdb.domain.to.PainelGame;
 import com.games.imdb.service.GameService;
 import com.games.imdb.service.client.GameClient;
-import com.games.imdb.service.client.UserClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.extern.slf4j.Slf4j;
-
 @RestController
 @RequestMapping("/autos")
-@Slf4j
 public class AutomationController {
 
     @Autowired
@@ -36,9 +27,6 @@ public class AutomationController {
 
     @Autowired
     private GameService gameService;
-
-    @Autowired
-    private UserClient userClient;
 
     @GetMapping(value = "/create-game-and-vote-right-all-answers")
     public ResponseEntity<String> createGameAndVoteRightAllAnswers(@AuthenticationPrincipal User user, HttpServletRequest request) {

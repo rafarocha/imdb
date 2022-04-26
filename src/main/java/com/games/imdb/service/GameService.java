@@ -151,7 +151,6 @@ public class GameService {
         Game game = gameRepository.getById(id);
         validateIfExistOrCancelOrFinished(id, game);
 
-        System.out.println( game.getStep() );
         GameStep gameStep = game.getCurrentGameStep();
 
         Movie movie1 = movieRepository.getByImdbID(gameStep.getMovieId1());
